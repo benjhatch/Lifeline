@@ -179,7 +179,7 @@ public class DashboardFragment extends Fragment implements OnItemSelectedListene
         if(Math.abs(ppw)>2){
             caltext += " Losing/Gaining more than 2 pounds per week can be a very difficult goal to achieve. People have more success with a slower approach.";
         }
-        if((sex.equals("Male")||(sex.equals("Other")) && calories < 1200)||(sex.equals("Female") && calories < 1000)){
+        if(((sex.equals("Male")||(sex.equals("Other"))) && calories < 1200) || ((sex.equals("Female") && calories < 1000))){
             caltext+=" *Warning* Eating this amount of calories per day can be a health risk.";
         }
         calTextView.setText(caltext);
