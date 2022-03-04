@@ -111,18 +111,15 @@ public class DashboardFragment extends Fragment implements OnItemSelectedListene
         calTextView = binding.calories;
         calTextView.setText(0+"");
         ppwInput = binding.numberpicker;
-        ppwInput.setMinValue(0);
+        ppwInput.setMinValue(1);
         ppwInput.setMaxValue(10);
         button = binding.update;
         updateCalories();
-        ppwInput.setValue(0);
+        ppwInput.setValue(1);
 
 
         button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                if(ppwInput.getValue() == 0){
-                    return;
-                }
                 ppw = ppwInput.getValue();
                 updateCalories();
             }
