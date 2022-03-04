@@ -160,7 +160,7 @@ public class DashboardFragment extends Fragment implements OnItemSelectedListene
             return (int) (bmr - (500 * ppw));
         }else if(goalPos == 1){
             button.setEnabled(false);
-            ppwInput.setValue(0);
+            ppwInput.setValue(1);
             return (int) bmr;
         }else{
             button.setEnabled(true);
