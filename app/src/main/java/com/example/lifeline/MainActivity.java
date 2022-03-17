@@ -1,19 +1,30 @@
 package com.example.lifeline;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
+import com.androidnetworking.AndroidNetworking;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -27,7 +38,7 @@ import java.util.Calendar;
 import java.util.Date;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements LocationListener {
 
     static final int EDIT_PROFILE = 1;
 
@@ -46,6 +57,12 @@ public class MainActivity extends AppCompatActivity {
     private int height = 69;
     private int weight = 150;
     private Bitmap profilePic;
+    // Location variables
+    private LocationManager locationManager;
+    private Criteria criteria;
+    private String bestProvider;
+    private double latitude;
+    private double longitude;
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
@@ -57,6 +74,10 @@ public class MainActivity extends AppCompatActivity {
         if (b != null) {
             restoreData(b);
         }
+
+        AndroidNetworking.initialize(getApplicationContext());
+
+        getLocation();
 
         if (name == "")
             editProfile();
@@ -73,6 +94,33 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.navView, navController);
+    }
+
+    private void getLocation() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 3);
+        }
+        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        criteria = new Criteria();
+        bestProvider = String.valueOf(locationManager.getBestProvider(criteria, true)).toString();
+
+        Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        if (location != null) {
+            latitude = location.getLatitude();
+            longitude = location.getLongitude();
+            Log.d("location restored", latitude + ", " + longitude);
+        }
+        else {
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, this);
+        }
+
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        locationManager.removeUpdates(this);
+
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -99,7 +147,6 @@ public class MainActivity extends AppCompatActivity {
             actionBar.setDisplayUseLogoEnabled(true);
             actionBar.setDisplayShowHomeEnabled(true);
             actionBar.setLogo(d);
-
         }
     }
 
@@ -120,9 +167,18 @@ public class MainActivity extends AppCompatActivity {
         bundle.putInt("YEAR", year);
         bundle.putInt("MONTH", month);
         bundle.putInt("DAY", day);
+        bundle.putDouble("LATITUDE", latitude);
+        bundle.putDouble("LONGITUDE", longitude);
         bundle.putParcelable("PIC", profilePic);
         return bundle;
     }
 
 
+    @Override
+    public void onLocationChanged(@NonNull Location location) {
+        locationManager.removeUpdates(this);
+        latitude = location.getLatitude();
+        longitude = location.getLongitude();
+        Log.d("location", latitude + ", " + longitude);
+    }
 }

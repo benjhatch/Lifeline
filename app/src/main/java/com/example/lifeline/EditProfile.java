@@ -7,6 +7,8 @@ import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.Build;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -24,10 +26,13 @@ import android.widget.Toast;
 
 import android.os.Bundle;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
 public class EditProfile extends AppCompatActivity implements OnItemSelectedListener {
 
@@ -113,10 +118,25 @@ public class EditProfile extends AppCompatActivity implements OnItemSelectedList
         editName.setText(profile.getString("NAME"));
         int sexPos = sexAD.getPosition(profile.getString("SEX"));
         sexSpinner.setSelection(sexPos);
-        Log.d("date", "Date: " + profile.getInt("YEAR") + ", " + profile.getInt("MONTH") + ", " + profile.getInt("DAY"));
         bdayPicker.updateDate(profile.getInt("YEAR"), profile.getInt("MONTH") - 1, profile.getInt("DAY"));
-        editCity.setText(profile.getString("CITY"));
-        editCountry.setText(profile.getString("COUNTRY"));
+        String city = profile.getString("CITY");
+        String country = profile.getString("COUNTRY");
+        if (city == null && country == null) {
+            double latitude = profile.getDouble("LATITUDE");
+            double longitude = profile.getDouble("LONGITUDE");
+            Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+            try {
+                List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
+                if (addresses.size() > 0) {
+                    city = addresses.get(0).getLocality();
+                    country = addresses.get(0).getCountryName();
+                }
+            } catch (IOException e) {
+
+            }
+        }
+        editCity.setText(city);
+        editCountry.setText(country);
         feet.setValue(profile.getInt("HEIGHT") / 12);
         inches.setValue(profile.getInt("HEIGHT") % 12);
         weight.setValue(profile.getInt("WEIGHT"));
