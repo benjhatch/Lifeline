@@ -40,7 +40,6 @@ import java.util.Locale;
 
 public class NotificationsFragment extends Fragment {
 
-    private NotificationsViewModel notificationsViewModel;
     private FragmentNotificationsBinding binding;
     private Bundle profile;
     private double latitude;
@@ -49,39 +48,46 @@ public class NotificationsFragment extends Fragment {
     private String feels;
     private String skies;
     private String wind;
+    private String place;
     private static final String OPEN_WEATHER_MAP_API = "http://api.openweathermap.org/data/2.5/weather?lat=%s&lon=%s&units=imperial";
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        notificationsViewModel =
-                new ViewModelProvider(this).get(NotificationsViewModel.class);
 
         binding = FragmentNotificationsBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
         MainActivity activity = (MainActivity) getActivity();
-        profile = activity.getProfile();
 
+        profile = activity.getProfile();
         latitude = profile.getDouble("LATITUDE");
         longitude = profile.getDouble("LONGITUDE");
+        String city = profile.getString("CITY");
+        String country = profile.getString("COUNTRY");
+        if (city != null)
+            place = city + ", " + country;
 
-        Log.d("weather", latitude + ", " + longitude);
+        binding.place.setText(place);
 
-        Thread thread = new Thread(new Runnable() {
+        getWeather();
 
-            @Override
-            public void run() {
-                try  {
-                    getWeather(latitude, longitude);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+        binding.hikes.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Uri gmmIntentUri = Uri.parse("geo:" + latitude + "," + longitude + "?q=hikes");
+                Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                mapIntent.setClassName("com.google.android.apps.maps", "com.google.android.maps.MapsActivity");
+
+                startActivity(mapIntent);
             }
         });
 
+        return root;
+    }
+
+    public void getWeather() {
         AndroidNetworking.get(String.format(OPEN_WEATHER_MAP_API, latitude, longitude))
-                .addHeaders("x-api-key", "113d3ab578badceb2636da939d5d280f")
+                .addHeaders("x-api-key", getString(R.string.key))
                 .build()
                 .getAsJSONObject(new JSONObjectRequestListener() {
                     @Override
@@ -100,6 +106,18 @@ public class NotificationsFragment extends Fragment {
                             binding.skies.setText(skies);
                             binding.wind.setText(wind);
 
+                            binding.temp.setVisibility(View.VISIBLE);
+                            binding.feels.setVisibility(View.VISIBLE);
+                            binding.skies.setVisibility(View.VISIBLE);
+                            binding.wind.setVisibility(View.VISIBLE);
+
+                            binding.tempLabel.setVisibility(View.VISIBLE);
+                            binding.feelLabel.setVisibility(View.VISIBLE);
+                            binding.skiesLabel.setVisibility(View.VISIBLE);
+                            binding.windLabel.setVisibility(View.VISIBLE);
+
+                            binding.progressBar.setVisibility(View.INVISIBLE);
+
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -110,56 +128,6 @@ public class NotificationsFragment extends Fragment {
                         Log.d("json", "errror: ");
                     }
                 });
-
-        binding.hikes.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                Uri gmmIntentUri = Uri.parse("geo:0,0?q=hikes");
-                Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
-                mapIntent.setClassName("com.google.android.apps.maps", "com.google.android.maps.MapsActivity");
-
-                startActivity(mapIntent);
-            }
-        });
-
-        return root;
-    }
-
-    private JSONObject getWeather(double latitude, double longitude) {
-        try {
-            URL url = new URL(String.format(OPEN_WEATHER_MAP_API, latitude, longitude));
-            Log.d("url", url.toString());
-
-            Log.d("json", "hello 0");
-
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-
-            Log.d("json", "hello 1");
-            connection.addRequestProperty("x-api-key", "113d3ab578badceb2636da939d5d280f");
-
-            BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(connection.getInputStream()));
-
-            StringBuffer json = new StringBuffer(1024);
-            String tmp = "";
-            while ((tmp = reader.readLine()) != null)
-                json.append(tmp).append("\n");
-            reader.close();
-
-            Log.d("json", "hello 2");
-
-            Log.d("json", json.toString());
-
-            JSONObject data = new JSONObject(json.toString());
-
-            if (data.getInt("cod") != 200) {
-                return null;
-            }
-
-            return data;
-        } catch (Exception e) {
-            Log.d("json", e.toString());
-            return null;
-        }
     }
 
     @Override
