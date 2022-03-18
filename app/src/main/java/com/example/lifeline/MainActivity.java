@@ -67,6 +67,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        getLocation();
         super.onCreate(savedInstanceState);
 
         Intent receivedIntent = getIntent();
@@ -77,15 +78,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
         AndroidNetworking.initialize(getApplicationContext());
 
-        getLocation();
-
-        if (name == "")
-            editProfile();
-
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        BottomNavigationView navView = findViewById(R.id.nav_view);
+        //BottomNavigationView navView = findViewById(R.id.nav_view);
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
@@ -94,8 +90,12 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.navView, navController);
+
+        if (name == "")
+            editProfile();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     private void getLocation() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 3);
@@ -104,14 +104,14 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         criteria = new Criteria();
         bestProvider = String.valueOf(locationManager.getBestProvider(criteria, true)).toString();
 
-        Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        Location location = locationManager.getLastKnownLocation(bestProvider);
         if (location != null) {
             latitude = location.getLatitude();
             longitude = location.getLongitude();
-            Log.d("location restored", latitude + ", " + longitude);
         }
         else {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 0, this);
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, this);
         }
 
     }
@@ -120,7 +120,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     protected void onPause() {
         super.onPause();
         locationManager.removeUpdates(this);
-
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -174,11 +173,11 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     }
 
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onLocationChanged(@NonNull Location location) {
         locationManager.removeUpdates(this);
         latitude = location.getLatitude();
         longitude = location.getLongitude();
-        Log.d("location", latitude + ", " + longitude);
     }
 }

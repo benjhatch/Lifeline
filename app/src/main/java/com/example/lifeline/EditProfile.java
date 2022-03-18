@@ -1,16 +1,27 @@
 package com.example.lifeline;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+
 import com.example.lifeline.databinding.ActivityEditProfileBinding;
 
+import android.Manifest;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.location.Address;
+import android.location.Criteria;
 import android.location.Geocoder;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Build;
 import android.provider.MediaStore;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -34,7 +45,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class EditProfile extends AppCompatActivity implements OnItemSelectedListener {
+public class EditProfile extends AppCompatActivity implements OnItemSelectedListener, LocationListener {
 
     static final int REQUEST_IMAGE_CAPTURE = 1;
 
@@ -57,6 +68,15 @@ public class EditProfile extends AppCompatActivity implements OnItemSelectedList
     private String selectedSex;
     private ArrayAdapter sexAD;
 
+    private LocationManager locationManager;
+    private Criteria criteria;
+    private String bestProvider;
+
+
+    private String city;
+    private String country;
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -75,6 +95,8 @@ public class EditProfile extends AppCompatActivity implements OnItemSelectedList
         Bundle profile = receivedIntent.getExtras();
         if (profile != null)
             restoreState(profile);
+
+        getLocation();
 
         imageView.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -119,22 +141,8 @@ public class EditProfile extends AppCompatActivity implements OnItemSelectedList
         int sexPos = sexAD.getPosition(profile.getString("SEX"));
         sexSpinner.setSelection(sexPos);
         bdayPicker.updateDate(profile.getInt("YEAR"), profile.getInt("MONTH") - 1, profile.getInt("DAY"));
-        String city = profile.getString("CITY");
-        String country = profile.getString("COUNTRY");
-        if (city == null && country == null) {
-            double latitude = profile.getDouble("LATITUDE");
-            double longitude = profile.getDouble("LONGITUDE");
-            Geocoder geocoder = new Geocoder(this, Locale.getDefault());
-            try {
-                List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
-                if (addresses.size() > 0) {
-                    city = addresses.get(0).getLocality();
-                    country = addresses.get(0).getCountryName();
-                }
-            } catch (IOException e) {
-
-            }
-        }
+        city = profile.getString("CITY");
+        country = profile.getString("COUNTRY");
         editCity.setText(city);
         editCountry.setText(country);
         feet.setValue(profile.getInt("HEIGHT") / 12);
@@ -142,6 +150,24 @@ public class EditProfile extends AppCompatActivity implements OnItemSelectedList
         weight.setValue(profile.getInt("WEIGHT"));
         profilePic = profile.getParcelable("PIC");
         imageView.setImageBitmap(profilePic);
+    }
+
+
+    private void getCityFromLocation(double latitude, double longitude) {
+        if (TextUtils.isEmpty(editCity.getText().toString()) && TextUtils.isEmpty(editCountry.getText().toString())) {
+            Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+            try {
+                List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
+                if (addresses.size() > 0) {
+                    city = addresses.get(0).getLocality();
+                    country = addresses.get(0).getCountryName();
+                    editCity.setText(city);
+                    editCountry.setText(country);
+                }
+            } catch (IOException e) {
+
+            }
+        }
     }
 
 
@@ -232,6 +258,27 @@ public class EditProfile extends AppCompatActivity implements OnItemSelectedList
         inches.setValue(9);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void getLocation() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 3);
+        }
+        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        criteria = new Criteria();
+        bestProvider = String.valueOf(locationManager.getBestProvider(criteria, true)).toString();
+
+        Location location = locationManager.getLastKnownLocation(bestProvider);
+        if (location != null) {
+            Log.d("getloc", location.getLatitude() + ", " + location.getLongitude());
+            getCityFromLocation(location.getLatitude(), location.getLongitude());
+        }
+        else {
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, this);
+        }
+
+    }
+
     @Override
     public void onItemSelected(AdapterView<?> arg, View view, int pos, long id) {
         selectedSex = sexList[pos];
@@ -251,5 +298,17 @@ public class EditProfile extends AppCompatActivity implements OnItemSelectedList
             imageView.setImageBitmap(imageBitmap);
             profilePic = imageBitmap;
         }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        locationManager.removeUpdates(this);
+    }
+
+    @Override
+    public void onLocationChanged(@NonNull Location location) {
+        locationManager.removeUpdates(this);
+        getCityFromLocation(location.getLatitude(), location.getLongitude());
     }
 }

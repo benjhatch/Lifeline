@@ -11,6 +11,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Current Weather"
+        android:textColor="#000"
+        android:textSize="16sp"
+        android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
@@ -19,57 +22,71 @@
         app:layout_constraintVertical_bias="0.039" />
 
     <TextView
-        android:id="@+id/textView14"
+        android:id="@+id/tempLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="48dp"
+        android:layout_marginEnd="16dp"
         android:text="Temperature"
-        app:layout_constraintStart_toStartOf="parent"
+        android:textColor="#3F51B5"
+        android:textStyle="bold"
+        android:visibility="invisible"
+        app:layout_constraintEnd_toStartOf="@+id/textView5"
         app:layout_constraintTop_toBottomOf="@+id/textView5" />
 
     <TextView
-        android:id="@+id/textView15"
+        android:id="@+id/feelLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:text="Feels Like"
-        app:layout_constraintStart_toStartOf="@+id/textView14"
-        app:layout_constraintTop_toBottomOf="@+id/textView14" />
+        android:textColor="#3F51B5"
+        android:textStyle="bold"
+        android:visibility="invisible"
+        app:layout_constraintStart_toStartOf="@+id/tempLabel"
+        app:layout_constraintTop_toBottomOf="@+id/tempLabel" />
 
     <TextView
-        android:id="@+id/textView16"
+        android:id="@+id/skiesLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:text="Skies"
-        app:layout_constraintStart_toStartOf="@+id/textView15"
-        app:layout_constraintTop_toBottomOf="@+id/textView15" />
+        android:textColor="#3F51B5"
+        android:textStyle="bold"
+        android:visibility="invisible"
+        app:layout_constraintStart_toStartOf="@+id/feelLabel"
+        app:layout_constraintTop_toBottomOf="@+id/feelLabel" />
 
     <TextView
-        android:id="@+id/textView17"
+        android:id="@+id/windLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:text="Wind"
-        app:layout_constraintStart_toStartOf="@+id/textView16"
-        app:layout_constraintTop_toBottomOf="@+id/textView16" />
+        android:textColor="#3F51B5"
+        android:textStyle="bold"
+        android:visibility="invisible"
+        app:layout_constraintStart_toStartOf="@+id/skiesLabel"
+        app:layout_constraintTop_toBottomOf="@+id/skiesLabel" />
 
     <TextView
         android:id="@+id/temp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
+        android:layout_marginStart="16dp"
         android:text="loading..."
-        app:layout_constraintStart_toEndOf="@+id/textView14"
-        app:layout_constraintTop_toTopOf="@+id/textView14" />
+        android:textColor="#000000"
+        android:visibility="invisible"
+        app:layout_constraintStart_toEndOf="@+id/textView5"
+        app:layout_constraintTop_toTopOf="@+id/tempLabel" />
 
     <TextView
         android:id="@+id/temp2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
-        app:layout_constraintStart_toEndOf="@+id/textView15"
+        app:layout_constraintStart_toEndOf="@+id/feelLabel"
         app:layout_constraintTop_toBottomOf="@+id/temp" />
 
     <TextView
@@ -78,6 +95,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:text="loading..."
+        android:textColor="#000000"
+        android:visibility="invisible"
         app:layout_constraintStart_toStartOf="@+id/temp"
         app:layout_constraintTop_toBottomOf="@+id/temp" />
 
@@ -87,6 +106,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:text="loading..."
+        android:textColor="#000000"
+        android:visibility="invisible"
         app:layout_constraintStart_toStartOf="@+id/feels"
         app:layout_constraintTop_toBottomOf="@+id/feels" />
 
@@ -96,6 +117,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:text="loading..."
+        android:textColor="#000000"
+        android:visibility="invisible"
         app:layout_constraintStart_toStartOf="@+id/skies"
         app:layout_constraintTop_toBottomOf="@+id/skies" />
 
@@ -108,4 +131,35 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="104dp"
+        android:layout_height="134dp"
+        android:layout_marginTop="48dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView5" />
+
+    <ImageView
+        android:id="@+id/hikeimage"
+        android:layout_width="188dp"
+        android:layout_height="144dp"
+        app:layout_constraintBottom_toTopOf="@+id/hikes"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintStart_toStartOf="parent"
+        android:src="@drawable/ic_hiking" />
+
+    <TextView
+        android:id="@+id/place"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        app:layout_constraintEnd_toEndOf="@+id/textView5"
+        app:layout_constraintStart_toStartOf="@+id/textView5"
+        app:layout_constraintTop_toBottomOf="@+id/textView5" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

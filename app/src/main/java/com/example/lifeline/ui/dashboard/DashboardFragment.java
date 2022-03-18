@@ -64,9 +64,6 @@ public class DashboardFragment extends Fragment implements OnItemSelectedListene
         heightInInches = profile.getInt("HEIGHT");
         weight = profile.getInt("WEIGHT");
 
-        DashboardViewModel dashboardViewModel =
-                new ViewModelProvider(this).get(DashboardViewModel.class);
-
         binding = FragmentDashboardBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
