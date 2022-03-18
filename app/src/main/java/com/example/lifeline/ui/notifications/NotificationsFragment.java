@@ -48,7 +48,6 @@ public class NotificationsFragment extends Fragment {
     private String feels;
     private String skies;
     private String wind;
-    private String place;
     private static final String OPEN_WEATHER_MAP_API = "http://api.openweathermap.org/data/2.5/weather?lat=%s&lon=%s&units=imperial";
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -63,12 +62,6 @@ public class NotificationsFragment extends Fragment {
         profile = activity.getProfile();
         latitude = profile.getDouble("LATITUDE");
         longitude = profile.getDouble("LONGITUDE");
-        String city = profile.getString("CITY");
-        String country = profile.getString("COUNTRY");
-        if (city != null)
-            place = city + ", " + country;
-
-        binding.place.setText(place);
 
         getWeather();
 

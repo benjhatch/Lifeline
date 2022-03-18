@@ -260,6 +260,7 @@ public class EditProfile extends AppCompatActivity implements OnItemSelectedList
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void getLocation() {
+        Log.d("getloc", "fetching");
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 3);
         }
@@ -273,8 +274,9 @@ public class EditProfile extends AppCompatActivity implements OnItemSelectedList
             getCityFromLocation(location.getLatitude(), location.getLongitude());
         }
         else {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+            Log.d("getloc", "fetching2");
             locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, this);
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
         }
 
     }
@@ -308,6 +310,7 @@ public class EditProfile extends AppCompatActivity implements OnItemSelectedList
 
     @Override
     public void onLocationChanged(@NonNull Location location) {
+        Log.d("getloc", "fetching3");
         locationManager.removeUpdates(this);
         getCityFromLocation(location.getLatitude(), location.getLongitude());
     }

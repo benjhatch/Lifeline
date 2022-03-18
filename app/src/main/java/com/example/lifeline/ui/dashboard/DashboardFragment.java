@@ -37,7 +37,7 @@ public class DashboardFragment extends Fragment implements OnItemSelectedListene
     public static TextView calTextView;
     public static boolean active = false;
     static int goalPos = 0;
-    public static double ppw = 0;
+    public static double ppw = 1;
     public static String sex = "Male";
     public static double ageInYears = 21;
     public static double heightInInches = 72;

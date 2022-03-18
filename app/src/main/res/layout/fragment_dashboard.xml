@@ -12,120 +12,153 @@
 
         <TextView
             android:id="@+id/textView"
-            android:layout_width="101dp"
-            android:layout_height="74dp"
-            android:layout_marginStart="24dp"
-            android:layout_marginTop="4dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_weight="9"
             android:gravity="center"
             android:text="I want to:"
             android:textAlignment="center"
-            android:textSize="22dp"
+            android:textColor="#3F51B5"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toTopOf="@+id/goals"
+            app:layout_constraintStart_toStartOf="@+id/goals" />
+
+        <TextView
+            android:id="@+id/textView17"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="4dp"
+            android:layout_weight="9"
+            android:gravity="center"
+            android:text="Calorie Goal"
+            android:textAlignment="center"
+            android:textColor="#3F51B5"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toTopOf="@+id/calories"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.086"
+            app:layout_constraintHorizontal_bias="0.498"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toBottomOf="@+id/textBMR" />
 
         <NumberPicker
             android:id="@+id/numberpicker"
             android:layout_width="100dp"
             android:layout_height="100dp"
-            android:layout_marginStart="12dp"
-            app:layout_constraintStart_toEndOf="@+id/textView2"
-            app:layout_constraintTop_toTopOf="@+id/textView2"></NumberPicker>
+            app:layout_constraintStart_toStartOf="@+id/textView2"
+            app:layout_constraintTop_toBottomOf="@+id/textView2"></NumberPicker>
 
         <Spinner
             android:id="@+id/goals"
-            android:layout_width="wrap_content"
-            android:layout_height="73dp"
-            android:layout_marginStart="12dp"
-            android:layout_marginTop="4dp"
+            android:layout_width="248dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="48dp"
             android:layout_weight="10"
             android:textSize="22dp"
-            app:layout_constraintStart_toEndOf="@+id/textView"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.496"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/textView2"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
 
-            android:layout_marginStart="24dp"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="16dp"
             android:layout_weight="8"
             android:gravity="center"
             android:text="Pounds / week"
-            android:textSize="22dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.086"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textView" />
+            android:textColor="#3F51B5"
+            android:textSize="14dp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="@+id/goals"
+            app:layout_constraintTop_toBottomOf="@+id/goals" />
+
+        <TextView
+            android:id="@+id/textView15"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="16dp"
+            android:layout_weight="8"
+            android:gravity="center"
+            android:text="Are You Active?"
+            android:textColor="#3F51B5"
+            android:textSize="14dp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="@+id/goals"
+            app:layout_constraintTop_toBottomOf="@+id/goals" />
 
         <TextView
             android:id="@+id/calories"
             android:layout_width="328dp"
             android:layout_height="315dp"
-            android:layout_marginStart="44dp"
-            android:layout_marginTop="36dp"
             android:text="You will need to consume 3000 calories a day to reach this goal"
             android:textSize="16dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textBMI" />
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.493"
+            app:layout_constraintStart_toStartOf="parent" />
 
         <TextView
             android:id="@+id/textBMI"
-            android:layout_width="128dp"
-            android:layout_height="45dp"
-            android:layout_marginStart="24dp"
-            android:layout_marginTop="28dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
             android:text='Your BMI:'
-            android:textSize="20dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.083"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textView3" />
+            android:textColor="#000"
+            android:textSize="16sp"
+            app:layout_constraintStart_toStartOf="@+id/goals"
+            app:layout_constraintTop_toBottomOf="@+id/update" />
 
         <TextView
             android:id="@+id/textBMR"
             android:layout_width="wrap_content"
-            android:layout_height="35dp"
-            android:layout_marginStart="24dp"
-            android:layout_marginTop="28dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
             android:text="Your BMR:"
-            android:textSize="20dp"
-            app:layout_constraintStart_toEndOf="@+id/textBMI"
-            app:layout_constraintTop_toBottomOf="@+id/textView3" />
+            android:textColor="#000"
+            android:textSize="16sp"
+            app:layout_constraintEnd_toEndOf="@+id/textView15"
+            app:layout_constraintTop_toBottomOf="@+id/update" />
 
         <Switch
             android:id="@+id/switch1"
-            android:layout_width="218dp"
-            android:layout_height="83dp"
-            android:layout_marginStart="24dp"
-            android:autoText="true"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.117"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textView2" />
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:layout_marginTop="8dp"
+            app:layout_constraintEnd_toStartOf="@+id/switchLabel"
+            app:layout_constraintStart_toEndOf="@+id/switchLabel2"
+            app:layout_constraintTop_toBottomOf="@+id/textView15" />
 
         <Button
             android:id="@+id/update"
-            android:layout_width="wrap_content"
+            android:layout_width="100dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="128dp"
-            android:layout_marginTop="24dp"
             android:text="Update"
-            app:layout_constraintStart_toEndOf="@+id/textView2"
-            app:layout_constraintTop_toTopOf="@+id/numberpicker" />
+            app:layout_constraintStart_toStartOf="@+id/numberpicker"
+            app:layout_constraintTop_toBottomOf="@+id/numberpicker" />
 
         <TextView
-            android:id="@+id/textView3"
-            android:layout_width="158dp"
-            android:layout_height="83dp"
-            android:layout_marginStart="8dp"
-            android:gravity="center_vertical"
-            android:text="Do you have an active lifestyle?"
-            android:textSize="20dp"
-            app:layout_constraintStart_toStartOf="@+id/switch1"
+            android:id="@+id/switchLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Yes"
+            app:layout_constraintEnd_toEndOf="@+id/textView15"
+            app:layout_constraintTop_toTopOf="@+id/switch1" />
+
+        <TextView
+            android:id="@+id/switchLabel2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="No"
+            app:layout_constraintStart_toStartOf="@+id/textView15"
             app:layout_constraintTop_toTopOf="@+id/switch1" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
