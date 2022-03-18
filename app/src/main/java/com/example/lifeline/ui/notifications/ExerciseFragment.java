@@ -1,8 +1,6 @@
 package com.example.lifeline.ui.notifications;
 
 import android.content.Intent;
-import android.location.Address;
-import android.location.Geocoder;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -10,37 +8,24 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProvider;
 
 import com.androidnetworking.AndroidNetworking;
 import com.androidnetworking.error.ANError;
 import com.androidnetworking.interfaces.JSONObjectRequestListener;
 import com.example.lifeline.MainActivity;
 import com.example.lifeline.R;
-import com.example.lifeline.databinding.FragmentNotificationsBinding;
+import com.example.lifeline.databinding.FragmentExerciseBinding;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.List;
-import java.util.Locale;
+public class ExerciseFragment extends Fragment {
 
-public class NotificationsFragment extends Fragment {
-
-    private FragmentNotificationsBinding binding;
+    private FragmentExerciseBinding binding;
     private Bundle profile;
     private double latitude;
     private double longitude;
@@ -54,7 +39,7 @@ public class NotificationsFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
-        binding = FragmentNotificationsBinding.inflate(inflater, container, false);
+        binding = FragmentExerciseBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
         MainActivity activity = (MainActivity) getActivity();
