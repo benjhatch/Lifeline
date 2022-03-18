@@ -59,7 +59,7 @@ public class DashboardFragment extends Fragment implements OnItemSelectedListene
         profile = activity.getProfile();
 
         sex = profile.getString("SEX");
-        Log.d("SEX", "sex: " + sex);
+
         ageInYears = profile.getInt("AGE");
         heightInInches = profile.getInt("HEIGHT");
         weight = profile.getInt("WEIGHT");
@@ -151,6 +151,7 @@ public class DashboardFragment extends Fragment implements OnItemSelectedListene
         }
     }
     public static int calcCal(double ppw, int bmr){
+
         if(goalPos == 0){
             button.setEnabled(true);
             return (int) (bmr - (500 * ppw));
@@ -196,13 +197,9 @@ public class DashboardFragment extends Fragment implements OnItemSelectedListene
     {
 
         goalPos = position;
+
         updateCalories();
-        // make toastof name of course
-        // which is selected in spinner
-        Toast.makeText(this.getContext(),
-                goalList[position],
-                Toast.LENGTH_LONG)
-                .show();
+
     }
     public void onNothingSelected(AdapterView<?> arg0) {
         // TODO Auto-generated method stub
