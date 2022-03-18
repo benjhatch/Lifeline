@@ -1,27 +1,24 @@
 package com.example.lifeline;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.location.Criteria;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
-import android.os.Build;
 import android.os.Bundle;
+import android.os.Looper;
 import android.util.Log;
-import android.view.View;
-import android.widget.Toast;
 
 import com.androidnetworking.AndroidNetworking;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnSuccessListener;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -34,13 +31,10 @@ import com.example.lifeline.databinding.ActivityMainBinding;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.Calendar;
 import java.util.Date;
 
 
-public class MainActivity extends AppCompatActivity implements LocationListener {
-
-    static final int EDIT_PROFILE = 1;
+public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
 
@@ -58,13 +52,14 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     private int weight = 150;
     private Bitmap profilePic;
     // Location variables
-    private LocationManager locationManager;
-    private Criteria criteria;
-    private String bestProvider;
+    private LocationRequest locationRequest;
+    private LocationCallback locationCallback;
+    private FusedLocationProviderClient locationProviderClient;
+
+
     private double latitude;
     private double longitude;
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         getLocation();
@@ -95,34 +90,66 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             editProfile();
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
     private void getLocation() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 3);
+        Log.d("getloc", "fetching2");
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 3);
         }
-        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        criteria = new Criteria();
-        bestProvider = String.valueOf(locationManager.getBestProvider(criteria, true)).toString();
+        locationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        locationProviderClient.getLastLocation()
+                .addOnSuccessListener(new OnSuccessListener<Location>() {
 
-        Location location = locationManager.getLastKnownLocation(bestProvider);
-        if (location != null) {
-            latitude = location.getLatitude();
-            longitude = location.getLongitude();
-        }
-        else {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
-            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, this);
+                    @Override
+                    public void onSuccess(Location location) {
+
+                        if (location != null) {
+                            Log.d("getLoc", "fetched cache2");
+                            latitude = location.getLatitude();
+                            longitude = location.getLongitude();
+                        }
+                        else
+                            getCurrentLocation();
+                    }
+
+                });
+
+    }
+
+    private void getCurrentLocation() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 3);
         }
 
+        locationRequest = LocationRequest.create();
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        locationRequest.setInterval(0);
+        locationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+
+                if (locationResult == null) {
+                    Log.d("getloc", "null2");
+                    return;
+                }
+                for (Location location : locationResult.getLocations()) {
+                    if (location != null) {
+                        Log.d("getloc", location.getLatitude() + ", " + location.getLongitude() + ", 2");
+                        latitude = location.getLatitude();
+                        longitude = location.getLongitude();
+                        locationProviderClient.removeLocationUpdates(locationCallback);
+                    }
+                }
+            }
+        };
+        Log.d("getloc", "callback start2");
+        locationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        locationManager.removeUpdates(this);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
     private void editProfile() {
         Intent intent = new Intent(this, EditProfile.class);
         intent.putExtras(getProfile());
@@ -149,7 +176,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
     public Bundle getProfile() {
         LocalDate birthday = LocalDate.of(year, month, day);
         LocalDate curr = LocalDate.now();
@@ -170,14 +196,5 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         bundle.putDouble("LONGITUDE", longitude);
         bundle.putParcelable("PIC", profilePic);
         return bundle;
-    }
-
-
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    @Override
-    public void onLocationChanged(@NonNull Location location) {
-        locationManager.removeUpdates(this);
-        latitude = location.getLatitude();
-        longitude = location.getLongitude();
     }
 }

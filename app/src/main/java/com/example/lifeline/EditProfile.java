@@ -1,25 +1,25 @@
 package com.example.lifeline;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import com.example.lifeline.databinding.ActivityEditProfileBinding;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnSuccessListener;
 
 import android.Manifest;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
 import android.location.Address;
-import android.location.Criteria;
 import android.location.Geocoder;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
-import android.os.Build;
+import com.google.android.gms.location.LocationRequest;
+import android.os.Looper;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.Log;
@@ -38,19 +38,17 @@ import android.widget.Toast;
 import android.os.Bundle;
 
 import java.io.IOException;
-import java.time.LocalDate;
-import java.time.Period;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class EditProfile extends AppCompatActivity implements OnItemSelectedListener, LocationListener {
+public class EditProfile extends AppCompatActivity implements OnItemSelectedListener {
 
     static final int REQUEST_IMAGE_CAPTURE = 1;
 
     private ActivityEditProfileBinding binding;
-    private String[] sexList = { "Male", "Female", "Other" };
+    private String[] sexList = {"Male", "Female", "Other"};
 
     private Button saveProfile;
     private ImageButton imageView;
@@ -68,15 +66,14 @@ public class EditProfile extends AppCompatActivity implements OnItemSelectedList
     private String selectedSex;
     private ArrayAdapter sexAD;
 
-    private LocationManager locationManager;
-    private Criteria criteria;
-    private String bestProvider;
+    private LocationRequest locationRequest;
+    private LocationCallback locationCallback;
+    private FusedLocationProviderClient locationProviderClient;
 
 
     private String city;
     private String country;
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -197,20 +194,16 @@ public class EditProfile extends AppCompatActivity implements OnItemSelectedList
         if (name.equals("")) {
             alertMessage("Enter your name");
             return false;
-        }
-        else if (enteredDate.after(currentDate)) {
+        } else if (enteredDate.after(currentDate)) {
             alertMessage("Enter a valid birthday");
             return false;
-        }
-        else if (city.equals("")) {
+        } else if (city.equals("")) {
             alertMessage("Enter a city");
             return false;
-        }
-        else if (country.equals("")) {
+        } else if (country.equals("")) {
             alertMessage("Enter a country");
             return false;
-        }
-        else if (profilePic == null) {
+        } else if (profilePic == null) {
             alertMessage("Select profile picture");
             return false;
         }
@@ -258,27 +251,56 @@ public class EditProfile extends AppCompatActivity implements OnItemSelectedList
         inches.setValue(9);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
     private void getLocation() {
         Log.d("getloc", "fetching");
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 3);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 3);
         }
-        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        criteria = new Criteria();
-        bestProvider = String.valueOf(locationManager.getBestProvider(criteria, true)).toString();
+        locationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        locationProviderClient.getLastLocation()
+                .addOnSuccessListener(new OnSuccessListener<Location>() {
 
-        Location location = locationManager.getLastKnownLocation(bestProvider);
-        if (location != null) {
-            Log.d("getloc", location.getLatitude() + ", " + location.getLongitude());
-            getCityFromLocation(location.getLatitude(), location.getLongitude());
-        }
-        else {
-            Log.d("getloc", "fetching2");
-            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, this);
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+                    @Override
+                    public void onSuccess(Location location) {
+
+                        if (location != null) {
+                            Log.d("getLoc", "fetched cache");
+                            getCityFromLocation(location.getLatitude(), location.getLongitude());
+                        }
+                        else
+                            getCurrentLocation();
+                    }
+                });
+
+    }
+
+    private void getCurrentLocation() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 3);
         }
 
+        locationRequest = LocationRequest.create();
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        locationRequest.setInterval(0);
+        locationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+
+                if (locationResult == null) {
+                    Log.d("getloc", "null");
+                    return;
+                }
+                for (Location location : locationResult.getLocations()) {
+                    if (location != null) {
+                        Log.d("getloc", location.getLatitude() + ", " + location.getLongitude());
+                        getCityFromLocation(location.getLatitude(), location.getLongitude());
+                        locationProviderClient.removeLocationUpdates(locationCallback);
+                    }
+                }
+            }
+        };
+        Log.d("getloc", "callback start");
+        locationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());
     }
 
     @Override
@@ -305,13 +327,5 @@ public class EditProfile extends AppCompatActivity implements OnItemSelectedList
     @Override
     protected void onPause() {
         super.onPause();
-        locationManager.removeUpdates(this);
-    }
-
-    @Override
-    public void onLocationChanged(@NonNull Location location) {
-        Log.d("getloc", "fetching3");
-        locationManager.removeUpdates(this);
-        getCityFromLocation(location.getLatitude(), location.getLongitude());
     }
 }
