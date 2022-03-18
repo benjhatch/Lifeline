@@ -32,19 +32,19 @@ public class DashboardFragment extends Fragment implements OnItemSelectedListene
     private FragmentDashboardBinding binding;
 
     private String[] goalList = { "Lose Weight", "Maintain My Weight", "Gain Weight" };
-    double activityFactor = 1.2;
-    private NumberPicker ppwInput;
-    private TextView calTextView;
-    boolean active = false;
-    int goalPos = 0;
-    double ppw = 0;
-    private String sex = "Male";
-    private double ageInYears = 21;
-    private double heightInInches = 72;
-    private double weight = 150;
-    private Button button;
-    Switch sw;
-    private Bundle profile;
+    static double activityFactor = 1.2;
+    public static NumberPicker ppwInput;
+    public static TextView calTextView;
+    public static boolean active = false;
+    static int goalPos = 0;
+    public static double ppw = 0;
+    public static String sex = "Male";
+    public static double ageInYears = 21;
+    public static double heightInInches = 72;
+    public static double weight = 150;
+    public static Button button;
+    static Switch sw;
+    public static Bundle profile;
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -129,14 +129,14 @@ public class DashboardFragment extends Fragment implements OnItemSelectedListene
 
     }
 
-    public double calcBMI(double height, double weight){
+    public static double calcBMI(double height, double weight){
         //weight / height ^ 2 * 703
         double val = weight/(height * height)*703.0;
         val = Math.round(val * 10);
         return val / 10;
     }
 
-    public int calcBMR(){
+    public static int calcBMR(){
         // male   -> Men: BMR = 88.362 + (13.397 x weight in kg) + (4.799 x height in cm) – (5.677 x age in years)
         // female -> 447.593 + (9.247 x weight in kg) + (3.098 x height in cm) – (4.330 x age in years)
         double cm = heightInInches * 2.54;
@@ -153,8 +153,7 @@ public class DashboardFragment extends Fragment implements OnItemSelectedListene
             return -1;
         }
     }
-    public int calcCal(double ppw, int bmr){
-        Log.d("temp", ppw+"");
+    public static int calcCal(double ppw, int bmr){
         if(goalPos == 0){
             button.setEnabled(true);
             return (int) (bmr - (500 * ppw));
@@ -168,7 +167,7 @@ public class DashboardFragment extends Fragment implements OnItemSelectedListene
         }
 
     }
-    public void updateCalories(){
+    public static String updateCalories(){
         String caltext = "You will need to consume ";
         int calories = calcCal(ppw, calcBMR());
         caltext += calories;
@@ -180,6 +179,7 @@ public class DashboardFragment extends Fragment implements OnItemSelectedListene
             caltext+=" *Warning* Eating this amount of calories per day can be a health risk.";
         }
         calTextView.setText(caltext);
+        return caltext;
     }
 
 
