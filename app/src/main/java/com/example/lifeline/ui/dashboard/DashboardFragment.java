@@ -1,9 +1,8 @@
 package com.example.lifeline.ui.dashboard;
 
+import android.annotation.SuppressLint;
 import android.os.Build;
 import android.os.Bundle;
-import android.text.Layout;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,25 +10,30 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
-import android.widget.EditText;
 import android.widget.NumberPicker;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.AdapterView.OnItemSelectedListener;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.example.lifeline.MainActivity;
+import com.example.lifeline.AppViewModel;
+import com.example.lifeline.User;
 import com.example.lifeline.databinding.FragmentDashboardBinding;
+
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 
 public class DashboardFragment extends Fragment implements OnItemSelectedListener {
 
     private FragmentDashboardBinding binding;
+
+    private AppViewModel viewModel;
 
     private String[] goalList = { "Lose Weight", "Maintain My Weight", "Gain Weight" };
     static double activityFactor = 1.2;
@@ -44,7 +48,6 @@ public class DashboardFragment extends Fragment implements OnItemSelectedListene
     public static double weight = 150;
     public static Button button;
     static Switch sw;
-    public static Bundle profile;
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -55,14 +58,9 @@ public class DashboardFragment extends Fragment implements OnItemSelectedListene
             ppw = savedInstanceState.getInt("PPW");
         }
 
-        MainActivity activity = (MainActivity) getActivity();
-        profile = activity.getProfile();
+        viewModel = new ViewModelProvider(this).get(AppViewModel.class);
 
-        sex = profile.getString("SEX");
-
-        ageInYears = profile.getInt("AGE");
-        heightInInches = profile.getInt("HEIGHT");
-        weight = profile.getInt("WEIGHT");
+        viewModel.getUserData().observe(getViewLifecycleOwner(), userObserver);
 
         binding = FragmentDashboardBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
@@ -125,6 +123,24 @@ public class DashboardFragment extends Fragment implements OnItemSelectedListene
         return root;
 
     }
+
+    final Observer<User> userObserver = new Observer<User>() {
+
+        @SuppressLint("SetTextI18n")
+        @RequiresApi(api = Build.VERSION_CODES.O)
+        @Override
+        public void onChanged(User user) {
+            sex = user.getSex();
+
+            heightInInches = user.getHeight();
+            weight = user.getWeight();
+
+            LocalDate birthday = LocalDate.of(user.getYear(), user.getMonth(), user.getDay());
+            LocalDate curr = LocalDate.now();
+
+            ageInYears = (int) ChronoUnit.YEARS.between(birthday, curr);
+        }
+    };
 
     public static double calcBMI(double height, double weight){
         //weight / height ^ 2 * 703

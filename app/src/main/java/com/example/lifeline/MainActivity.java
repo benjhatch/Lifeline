@@ -1,7 +1,6 @@
 package com.example.lifeline;
 
 import android.Manifest;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
@@ -10,7 +9,6 @@ import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
-import android.util.Log;
 
 import com.androidnetworking.AndroidNetworking;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -24,6 +22,8 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -31,28 +31,13 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.example.lifeline.databinding.ActivityMainBinding;
 
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
-import java.util.Date;
-
 
 public class MainActivity extends AppCompatActivity {
 
+    private AppViewModel viewModel;
+
     private ActivityMainBinding binding;
 
-    Date current = new Date();
-
-    // profile info
-    private String name = "";
-    private String sex = "";
-    private int year = current.getYear() + 1900;
-    private int month = current.getMonth() + 1;
-    private int day = current.getDate();
-    private String city;
-    private String country;
-    private int height = 69;
-    private int weight = 150;
-    private Bitmap profilePic;
     // Location variables
     private LocationRequest locationRequest;
     private LocationCallback locationCallback;
@@ -62,16 +47,14 @@ public class MainActivity extends AppCompatActivity {
     private double latitude;
     private double longitude;
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         getLocation();
         super.onCreate(savedInstanceState);
 
-        Intent receivedIntent = getIntent();
-        Bundle b = receivedIntent.getExtras();
-        if (b != null) {
-            restoreData(b);
-        }
+        viewModel = new ViewModelProvider(this).get(AppViewModel.class);
+        viewModel.getUserData().observe(this, userObserver);
 
         AndroidNetworking.initialize(getApplicationContext());
 
@@ -87,13 +70,25 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.navView, navController);
-
-        if (name == "")
-            editProfile();
     }
 
+
+    final Observer<User> userObserver = new Observer<User>() {
+        @Override
+        public void onChanged(User user) {
+            Bitmap profilePic = user.getProfilePic();
+            if (profilePic != null) {
+                Drawable d = new BitmapDrawable(getResources(), profilePic);
+                ActionBar actionBar = getSupportActionBar();
+                actionBar.setDisplayUseLogoEnabled(true);
+                actionBar.setDisplayShowHomeEnabled(true);
+                actionBar.setLogo(d);
+            }
+        }
+    };
+
+
     private void getLocation() {
-        Log.d("getloc", "fetching2");
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 3);
         }
@@ -105,9 +100,9 @@ public class MainActivity extends AppCompatActivity {
                     public void onSuccess(Location location) {
 
                         if (location != null) {
-                            Log.d("getLoc", "fetched cache2");
                             latitude = location.getLatitude();
                             longitude = location.getLongitude();
+                            viewModel.setLocation(latitude, longitude);
                         }
                         else
                             getCurrentLocation();
@@ -130,74 +125,23 @@ public class MainActivity extends AppCompatActivity {
             public void onLocationResult(LocationResult locationResult) {
 
                 if (locationResult == null) {
-                    Log.d("getloc", "null2");
                     return;
                 }
                 for (Location location : locationResult.getLocations()) {
                     if (location != null) {
-                        Log.d("getloc", location.getLatitude() + ", " + location.getLongitude() + ", 2");
                         latitude = location.getLatitude();
                         longitude = location.getLongitude();
+                        viewModel.setLocation(latitude, longitude);
                         locationProviderClient.removeLocationUpdates(locationCallback);
                     }
                 }
             }
         };
-        Log.d("getloc", "callback start2");
         locationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-    }
-
-    private void editProfile() {
-        Intent intent = new Intent(this, EditProfile.class);
-        intent.putExtras(getProfile());
-        startActivity(intent);
-    }
-
-    private void restoreData(Bundle b) {
-        name = b.getString("NAME");
-        sex = b.getString("SEX");
-        year = b.getInt("YEAR");
-        month = b.getInt("MONTH");
-        day = b.getInt("DAY");
-        city = b.getString("CITY");
-        country = b.getString("COUNTRY");
-        height = b.getInt("HEIGHT");
-        weight = b.getInt("WEIGHT");
-        profilePic = b.getParcelable("PIC");
-        if (profilePic != null) {
-            Drawable d = new BitmapDrawable(getResources(), profilePic);
-            ActionBar actionBar = getSupportActionBar();
-            actionBar.setDisplayUseLogoEnabled(true);
-            actionBar.setDisplayShowHomeEnabled(true);
-            actionBar.setLogo(d);
-        }
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    public Bundle getProfile() {
-        LocalDate birthday = LocalDate.of(year, month, day);
-        LocalDate curr = LocalDate.now();
-
-        int age = (int) ChronoUnit.YEARS.between(birthday, curr);
-        Bundle bundle = new Bundle();
-        bundle.putString("NAME", name);
-        bundle.putInt("AGE", age);
-        bundle.putString("SEX", sex);
-        bundle.putString("CITY", city);
-        bundle.putString("COUNTRY", country);
-        bundle.putInt("HEIGHT", height);
-        bundle.putInt("WEIGHT", weight);
-        bundle.putInt("YEAR", year);
-        bundle.putInt("MONTH", month);
-        bundle.putInt("DAY", day);
-        bundle.putDouble("LATITUDE", latitude);
-        bundle.putDouble("LONGITUDE", longitude);
-        bundle.putParcelable("PIC", profilePic);
-        return bundle;
     }
 }

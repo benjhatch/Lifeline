@@ -2,6 +2,8 @@ package com.example.lifeline;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.example.lifeline.databinding.ActivityEditProfileBinding;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -44,6 +46,8 @@ import java.util.List;
 import java.util.Locale;
 
 public class EditProfile extends AppCompatActivity implements OnItemSelectedListener {
+
+    private AppViewModel viewModel;
 
     static final int REQUEST_IMAGE_CAPTURE = 1;
 
@@ -88,12 +92,36 @@ public class EditProfile extends AppCompatActivity implements OnItemSelectedList
         setUpSexPicker();
         setUpNumberPickers();
 
-        Intent receivedIntent = getIntent();
-        Bundle profile = receivedIntent.getExtras();
-        if (profile != null)
-            restoreState(profile);
+        viewModel = new ViewModelProvider(this).get(AppViewModel.class);
+        viewModel.getUserData().observe(this, userObserver);
 
         getLocation();
+
+        setupButtons();
+
+        setContentView(binding.getRoot());
+    }
+
+    final Observer<User> userObserver = new Observer<User>() {
+        @Override
+        public void onChanged(User user) {
+            editName.setText(user.getName());
+            int sexPos = sexAD.getPosition(user.getSex());
+            sexSpinner.setSelection(sexPos);
+            bdayPicker.updateDate(user.getYear(), user.getMonth() - 1, user.getDay());
+            city = user.getCity();
+            country = user.getCountry();
+            editCity.setText(city);
+            editCountry.setText(country);
+            feet.setValue(user.getHeight() / 12);
+            inches.setValue(user.getHeight() % 12);
+            weight.setValue(user.getWeight());
+            profilePic = user.getProfilePic();
+            imageView.setImageBitmap(profilePic);
+        }
+    };
+
+    private void setupButtons() {
 
         imageView.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -124,30 +152,20 @@ public class EditProfile extends AppCompatActivity implements OnItemSelectedList
 
 
                 if (validateEntries(name, cal, city, country)) {
-                    returnEditedProfile(name, sex, city, country, height, weightReturn);
+                    viewModel.setUser(name, sex, bdayPicker.getYear(), bdayPicker.getMonth() + 1,
+                            bdayPicker.getDayOfMonth(), city, country, height, weightReturn, profilePic);
+                    goBackToMain();
                 }
 
             }
         });
-
-        setContentView(binding.getRoot());
     }
 
-    private void restoreState(Bundle profile) {
-        editName.setText(profile.getString("NAME"));
-        int sexPos = sexAD.getPosition(profile.getString("SEX"));
-        sexSpinner.setSelection(sexPos);
-        bdayPicker.updateDate(profile.getInt("YEAR"), profile.getInt("MONTH") - 1, profile.getInt("DAY"));
-        city = profile.getString("CITY");
-        country = profile.getString("COUNTRY");
-        editCity.setText(city);
-        editCountry.setText(country);
-        feet.setValue(profile.getInt("HEIGHT") / 12);
-        inches.setValue(profile.getInt("HEIGHT") % 12);
-        weight.setValue(profile.getInt("WEIGHT"));
-        profilePic = profile.getParcelable("PIC");
-        imageView.setImageBitmap(profilePic);
+    private void goBackToMain() {
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
     }
+
 
 
     private void getCityFromLocation(double latitude, double longitude) {
