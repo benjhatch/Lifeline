@@ -24,6 +24,7 @@ public class Repository {
     private double latitude;
     private double longitude;
     private boolean locationSet = false;
+    private UserDao mUserDao;
 
     private static final String OPEN_WEATHER_MAP_API = "http://api.openweathermap.org/data/2.5/weather?lat=%s&lon=%s&units=imperial";
     private static final String key = "113d3ab578badceb2636da939d5d280f";
@@ -31,6 +32,9 @@ public class Repository {
     private Repository(Application application) {
         if (locationSet)
             loadWeather();
+        UserRoomDatabase db = UserRoomDatabase.getDatabase(application);
+        mUserDao = db.UserDao();
+        mUserDao.getAll();
     }
 
     public static synchronized Repository getInstance(Application application) {
@@ -61,6 +65,18 @@ public class Repository {
         user.setProfilePic(profilePic);
 
         userData.setValue(user);
+        if (name!=null && sex!=null && city!=null && country!=null){
+            UserTable table = new UserTable(name,sex,year,month,day,city,country,height,weight,null);
+            insert(table);
+        }
+
+    }
+
+    private void insert(UserTable table){
+        UserRoomDatabase.databaseExecutor.execute(() -> {
+            mUserDao.insert(table);
+        });
+
     }
 
     public MutableLiveData<User> getUserData() {
@@ -121,7 +137,4 @@ public class Repository {
                     }
                 });
     }
-
-
-
 }
