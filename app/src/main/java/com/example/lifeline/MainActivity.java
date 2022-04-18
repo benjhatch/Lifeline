@@ -18,6 +18,8 @@ import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
@@ -32,38 +34,40 @@ import androidx.navigation.ui.NavigationUI;
 import com.example.lifeline.databinding.ActivityMainBinding;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements LocationSubscriber {
 
     private AppViewModel viewModel;
 
     private ActivityMainBinding binding;
 
-    // Location variables
-    private LocationRequest locationRequest;
-    private LocationCallback locationCallback;
-    private FusedLocationProviderClient locationProviderClient;
+    private LocationFetcher locationFetcher;
 
+    private ActivityResultLauncher<String> requestPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+                if (isGranted) {
+                    if (locationFetcher != null)
+                        locationFetcher.getLocation();
+                }
+            });
 
-    private double latitude;
-    private double longitude;
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        getLocation();
+
         super.onCreate(savedInstanceState);
 
         viewModel = new ViewModelProvider(this).get(AppViewModel.class);
         viewModel.getUserData().observe(this, userObserver);
+
+        locationFetcher = new LocationFetcher(this, requestPermissionLauncher);
+        locationFetcher.getLocation();
 
         AndroidNetworking.initialize(getApplicationContext());
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        //BottomNavigationView navView = findViewById(R.id.nav_view);
-        // Passing each menu ID as a set of Ids because each
-        // menu should be considered as top level destinations.
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
                 R.id.navigation_home, R.id.navigation_dashboard, R.id.navigation_notifications)
                 .build();
@@ -76,6 +80,8 @@ public class MainActivity extends AppCompatActivity {
     final Observer<User> userObserver = new Observer<User>() {
         @Override
         public void onChanged(User user) {
+            if (user == null)
+                return;
             Bitmap profilePic = user.getProfilePic();
             if (profilePic != null) {
                 Drawable d = new BitmapDrawable(getResources(), profilePic);
@@ -87,61 +93,8 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-
-    private void getLocation() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 3);
-        }
-        locationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-        locationProviderClient.getLastLocation()
-                .addOnSuccessListener(new OnSuccessListener<Location>() {
-
-                    @Override
-                    public void onSuccess(Location location) {
-
-                        if (location != null) {
-                            latitude = location.getLatitude();
-                            longitude = location.getLongitude();
-                            viewModel.setLocation(latitude, longitude);
-                        }
-                        else
-                            getCurrentLocation();
-                    }
-
-                });
-
-    }
-
-    private void getCurrentLocation() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 3);
-        }
-
-        locationRequest = LocationRequest.create();
-        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        locationRequest.setInterval(0);
-        locationCallback = new LocationCallback() {
-            @Override
-            public void onLocationResult(LocationResult locationResult) {
-
-                if (locationResult == null) {
-                    return;
-                }
-                for (Location location : locationResult.getLocations()) {
-                    if (location != null) {
-                        latitude = location.getLatitude();
-                        longitude = location.getLongitude();
-                        viewModel.setLocation(latitude, longitude);
-                        locationProviderClient.removeLocationUpdates(locationCallback);
-                    }
-                }
-            }
-        };
-        locationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());
-    }
-
     @Override
-    protected void onPause() {
-        super.onPause();
+    public void locationFound(Location location) {
+        viewModel.setLocation(location.getLatitude(), location.getLongitude());
     }
 }

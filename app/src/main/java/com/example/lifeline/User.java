@@ -95,4 +95,17 @@ public class User {
         return profilePic;
     }
 
+    public void absorbUserTable(UserTable userTable) {
+        this.setName(userTable.getName());
+        this.setSex(userTable.getSex());
+        this.setYear(userTable.getYear());
+        this.setMonth(userTable.getMonth());
+        this.setDay(userTable.getDay());
+        this.setCity(userTable.getCity());
+        this.setCountry(userTable.getCountry());
+        this.setHeight(userTable.getHeight());
+        this.setWeight(userTable.getWeight());
+        this.setProfilePic(BitmapEncoder.decodeBitmap(userTable.getProfilePic()));
+    }
+
 }

@@ -1,7 +1,9 @@
 package com.example.lifeline;
 
 import android.app.Application;
+import android.content.Intent;
 import android.graphics.Bitmap;
+import android.util.Log;
 
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
@@ -18,6 +20,14 @@ public class AppViewModel extends AndroidViewModel {
         repository = Repository.getInstance(application);
         userData = repository.getUserData();
         weatherData = repository.getWeatherData();
+    }
+
+    public void loginUser(String name) {
+        repository.loginUser(name);
+    }
+
+    public void logoutUser() {
+        repository.logoutUser();
     }
 
     public void setUser(String name, String sex, int year, int month, int day,

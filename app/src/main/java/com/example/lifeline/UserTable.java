@@ -1,8 +1,5 @@
 package com.example.lifeline;
 
-
-import android.graphics.Bitmap;
-
 import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
@@ -11,6 +8,7 @@ import androidx.room.PrimaryKey;
 
 @Entity(tableName = "user_table")
 public class UserTable {
+
     @PrimaryKey
     @NonNull
     @ColumnInfo(name = "name")
@@ -43,13 +41,15 @@ public class UserTable {
     @ColumnInfo(name = "weight")
     private int weight;
 
-    @ColumnInfo(name = "profilePicPath")
-    private String profilePicPath;
+    @ColumnInfo(name = "profilePic")
+    private String profilePic;
 
 
 
 
-    public UserTable(@NonNull String name,@NonNull String sex, @NonNull int year, @NonNull int month, @NonNull int day, @NonNull String city, @NonNull String country, @NonNull int height, @NonNull int weight, String profilePicPath){
+    public UserTable(@NonNull String name,@NonNull String sex, @NonNull int year,
+                     @NonNull int month, @NonNull int day, @NonNull String city,
+                     @NonNull String country, @NonNull int height, @NonNull int weight, String profilePic){
         this.name = name;
         this.sex = sex;
         this.year = year;
@@ -59,7 +59,7 @@ public class UserTable {
         this.country = country;
         this.height = height;
         this.weight = weight;
-        this.profilePicPath = profilePicPath;
+        this.profilePic = profilePic;
     }
 
     public void setName(String name){
@@ -70,10 +70,6 @@ public class UserTable {
         return name;
     }
 
-    public void setSex(String sex){
-        this.sex = sex;
-    }
-
     public String getSex(){
         return sex;
     }
@@ -82,40 +78,20 @@ public class UserTable {
         return year;
     }
 
-    public void setYear(int year) {
-        this.year = year;
-    }
-
     public int getMonth() {
         return month;
-    }
-
-    public void setMonth(int month) {
-        this.month = month;
     }
 
     public int getDay() {
         return day;
     }
 
-    public void setDay(int day) {
-        this.day = day;
-    }
-
     public String getCity() {
         return city;
     }
 
-    public void setCity(@NonNull String city) {
-        this.city = city;
-    }
-
     public String getCountry() {
         return country;
-    }
-
-    public void setCountry(@NonNull String country) {
-        this.country = country;
     }
 
     public int getHeight() {
@@ -134,12 +110,8 @@ public class UserTable {
         this.weight = weight;
     }
 
-    public String getProfilePicPath() {
-        return profilePicPath;
-    }
-
-    public void setProfilePicPath(String profilePic) {
-        this.profilePicPath = profilePicPath;
+    public String getProfilePic() {
+        return profilePic;
     }
 }
 

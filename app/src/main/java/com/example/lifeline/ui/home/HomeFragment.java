@@ -16,6 +16,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.lifeline.AppViewModel;
 import com.example.lifeline.EditProfile;
+import com.example.lifeline.Login;
 import com.example.lifeline.User;
 import com.example.lifeline.databinding.FragmentHomeBinding;
 
@@ -29,8 +30,6 @@ public class HomeFragment extends Fragment {
 
     private FragmentHomeBinding binding;
 
-
-    @RequiresApi(api = Build.VERSION_CODES.O)
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
 
@@ -49,6 +48,15 @@ public class HomeFragment extends Fragment {
             }
         });
 
+        binding.signOut.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                viewModel.logoutUser();
+                Intent intent = new Intent(getContext(), Login.class);
+                startActivity(intent);
+            }
+        });
+
         return root;
     }
 
@@ -58,6 +66,9 @@ public class HomeFragment extends Fragment {
         @RequiresApi(api = Build.VERSION_CODES.O)
         @Override
         public void onChanged(User user) {
+            if (user == null) {
+                return;
+            }
             binding.name.setText(user.getName());
             binding.sex.setText(user.getSex());
             binding.hometown.setText(user.getCity() + ", " + user.getCountry());

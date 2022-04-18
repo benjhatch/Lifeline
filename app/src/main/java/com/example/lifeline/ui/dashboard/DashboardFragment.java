@@ -8,12 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.CompoundButton;
-import android.widget.NumberPicker;
-import android.widget.Spinner;
-import android.widget.Switch;
-import android.widget.TextView;
 import android.widget.AdapterView.OnItemSelectedListener;
 
 import androidx.annotation.NonNull;
@@ -36,22 +31,24 @@ public class DashboardFragment extends Fragment implements OnItemSelectedListene
     private AppViewModel viewModel;
 
     private String[] goalList = { "Lose Weight", "Maintain My Weight", "Gain Weight" };
-    static double activityFactor = 1.2;
-    public static NumberPicker ppwInput;
-    public static TextView calTextView;
+
+    // goal-related variables
     public static boolean active = false;
     static int goalPos = 0;
     public static double ppw = 1;
+
+    // elements eventually filled by view model
     public static String sex = "Male";
     public static double ageInYears = 21;
-    public static double heightInInches = 72;
+    public static double heightInInches = 69;
     public static double weight = 150;
-    public static Button button;
-    static Switch sw;
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
+
+        // not user data, just minor data like activity level that doesn't
+        // need to be saved to the Room Database
         if(savedInstanceState != null){
             active = savedInstanceState.getBoolean("ACTIVE");
             goalPos = savedInstanceState.getInt("goalPos");
@@ -59,66 +56,12 @@ public class DashboardFragment extends Fragment implements OnItemSelectedListene
         }
 
         viewModel = new ViewModelProvider(this).get(AppViewModel.class);
-
         viewModel.getUserData().observe(getViewLifecycleOwner(), userObserver);
 
         binding = FragmentDashboardBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
-        sw = binding.switch1;
-        sw.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-
-                if (isChecked) {
-                    active = true;
-                } else {
-                    active = false;
-                }
-                TextView textBMR = binding.textBMR;
-                textBMR.setText("Your BMR: " + calcBMR());
-                updateCalories();
-            }
-        });
-
-        Spinner goalsSpinner = binding.goals;
-        goalsSpinner.setOnItemSelectedListener((AdapterView.OnItemSelectedListener) this);
-
-
-
-        // Create the instance of ArrayAdapter
-        // having the list of courses
-        ArrayAdapter goalsAD = new ArrayAdapter(this.getContext(), android.R.layout.simple_spinner_item, goalList);
-
-        // set simple layout resource file
-        // for each item of spinner
-        goalsAD.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-
-        // Set the ArrayAdapter (ad) data on the
-        // Spinner which binds data to spinner
-        goalsSpinner.setAdapter(goalsAD);
-
-        final TextView textBMI = binding.textBMI;
-        textBMI.setText("Your BMI: " + calcBMI(heightInInches, weight));
-
-        final TextView textBMR = binding.textBMR;
-        textBMR.setText("Your BMR: " + calcBMR());
-
-        calTextView = binding.calories;
-        calTextView.setText(0+"");
-        ppwInput = binding.numberpicker;
-        ppwInput.setMinValue(1);
-        ppwInput.setMaxValue(10);
-        button = binding.update;
-        updateCalories();
-        ppwInput.setValue(1);
-
-
-        button.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                ppw = ppwInput.getValue();
-                updateCalories();
-            }
-        });
+        setUpUIElements();
 
         return root;
 
@@ -130,6 +73,9 @@ public class DashboardFragment extends Fragment implements OnItemSelectedListene
         @RequiresApi(api = Build.VERSION_CODES.O)
         @Override
         public void onChanged(User user) {
+            if (user == null)
+                return;
+
             sex = user.getSex();
 
             heightInInches = user.getHeight();
@@ -166,22 +112,24 @@ public class DashboardFragment extends Fragment implements OnItemSelectedListene
             return -1;
         }
     }
-    public static int calcCal(double ppw, int bmr){
+
+    public int calcCal(double ppw, int bmr){
 
         if(goalPos == 0){
-            button.setEnabled(true);
+            binding.update.setEnabled(true);
             return (int) (bmr - (500 * ppw));
         }else if(goalPos == 1){
-            button.setEnabled(false);
-            ppwInput.setValue(1);
+            binding.update.setEnabled(false);
+            binding.numberpicker.setValue(1);
             return (int) bmr;
         }else{
-            button.setEnabled(true);
+            binding.update.setEnabled(true);
             return (int) (bmr + (500 * ppw));
         }
 
     }
-    public static String updateCalories(){
+
+    public void updateCalories(){
         String caltext = "You will need to consume ";
         int calories = calcCal(ppw, calcBMR());
         caltext += calories;
@@ -192,8 +140,49 @@ public class DashboardFragment extends Fragment implements OnItemSelectedListene
         if(((sex.equals("Male")||(sex.equals("Other"))) && calories < 1200) || ((sex.equals("Female") && calories < 1000))){
             caltext+=" *Warning* Eating this amount of calories per day can be a health risk.";
         }
-        calTextView.setText(caltext);
-        return caltext;
+        binding.calories.setText(caltext);
+    }
+
+
+    private void setUpUIElements() {
+        binding.switch1.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                active = isChecked;
+                binding.textBMR.setText("Your BMR: " + calcBMR());
+                updateCalories();
+            }
+        });
+
+        binding.goals.setOnItemSelectedListener((AdapterView.OnItemSelectedListener) this);
+
+
+        // Create the instance of ArrayAdapter
+        // having the list of courses
+        ArrayAdapter goalsAD = new ArrayAdapter(this.getContext(), android.R.layout.simple_spinner_item, goalList);
+
+        // set simple layout resource file
+        // for each item of spinner
+        goalsAD.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        // Set the ArrayAdapter (ad) data on the
+        // Spinner which binds data to spinner
+        binding.goals.setAdapter(goalsAD);
+
+        binding.textBMI.setText("Your BMI: " + calcBMI(heightInInches, weight));
+        binding.textBMR.setText("Your BMR: " + calcBMR());
+        binding.calories.setText("0");
+
+        binding.numberpicker.setMinValue(1);
+        binding.numberpicker.setMaxValue(10);
+        updateCalories();
+
+
+        binding.update.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                ppw = binding.numberpicker.getValue();
+                updateCalories();
+            }
+        });
     }
 
 
@@ -206,19 +195,14 @@ public class DashboardFragment extends Fragment implements OnItemSelectedListene
     // Performing action when ItemSelected
     // from spinner, Overriding onItemSelected method
     @Override
-    public void onItemSelected(AdapterView<?> arg0,
-                               View arg1,
-                               int position,
-                               long id)
+    public void onItemSelected(AdapterView<?> arg0, View arg1, int position, long id)
     {
-
         goalPos = position;
-
         updateCalories();
-
     }
+
     public void onNothingSelected(AdapterView<?> arg0) {
-        // TODO Auto-generated method stub
+        // Do nothing
     }
 
     @Override
@@ -226,6 +210,6 @@ public class DashboardFragment extends Fragment implements OnItemSelectedListene
         super.onSaveInstanceState(outState);
         outState.putBoolean("ACTIVE", active);
         outState.putInt("GoalPos", goalPos);
-        outState.putInt("PPW", ppwInput.getValue());
+        outState.putInt("PPW", binding.numberpicker.getValue());
     }
 }

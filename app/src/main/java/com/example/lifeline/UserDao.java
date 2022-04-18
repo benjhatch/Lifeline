@@ -16,5 +16,8 @@ public interface UserDao {
 
     @Query("SELECT * from user_table ORDER BY name ASC")
     LiveData<List<UserTable>> getAll();
+
+    @Query("SELECT * from user_table WHERE name = :name")
+    UserTable readUser(String name);
 }
 
