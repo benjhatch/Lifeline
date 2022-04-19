@@ -2,14 +2,11 @@ package com.example.lifeline;
 
 import android.app.Application;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Base64;
 import android.util.Log;
 
 import androidx.core.os.HandlerCompat;
-import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.androidnetworking.AndroidNetworking;
@@ -18,8 +15,6 @@ import com.androidnetworking.interfaces.JSONObjectRequestListener;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.io.ByteArrayOutputStream;
 
 public class Repository {
     private static Repository instance;
