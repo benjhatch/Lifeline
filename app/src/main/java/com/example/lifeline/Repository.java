@@ -30,6 +30,8 @@ public class Repository {
     private static Repository instance;
     private final MutableLiveData<User> userData = new MutableLiveData<>();
     private final MutableLiveData<Weather> weatherData = new MutableLiveData<>();
+    private final MutableLiveData<StepCounterState> stepCounterState = new MutableLiveData<>();
+    private final MutableLiveData<StepCount> stepCount = new MutableLiveData<>();
 
     private double latitude;
     private double longitude;
@@ -189,6 +191,24 @@ public class Repository {
     public MutableLiveData<Weather> getWeatherData() {
         return weatherData;
     }
+
+    public MutableLiveData<StepCounterState> getStepCounterState() { return stepCounterState; }
+
+    public MutableLiveData<StepCount> getStepCount() { return stepCount; }
+
+    public void setStepCounterState(boolean on) {
+        Log.i("StepCounter", "repo setting to: " + on);
+        StepCounterState newStepCounterState = new StepCounterState();
+        newStepCounterState.setOn(on);
+        stepCounterState.setValue(newStepCounterState);
+    }
+
+    public void setStepCount(int count) {
+        StepCount newStepCount = new StepCount();
+        newStepCount.setCount(count);
+        stepCount.setValue(newStepCount);
+    }
+
 
     public double getLatitude() {
         return latitude;

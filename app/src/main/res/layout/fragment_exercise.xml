@@ -22,6 +22,20 @@
         app:layout_constraintVertical_bias="0.039" />
 
     <TextView
+        android:id="@+id/stepcountlabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:text="Step Count"
+        android:textColor="#000"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:visibility="invisible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/wind" />
+
+    <TextView
         android:id="@+id/tempLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -152,5 +166,19 @@
         app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
         android:src="@drawable/ic_hiking" />
+
+    <TextView
+        android:id="@+id/stepcount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="0"
+        android:textColor="#673AB7"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:visibility="invisible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/stepcountlabel" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

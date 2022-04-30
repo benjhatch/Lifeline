@@ -50,8 +50,10 @@ public class MainActivity extends AppCompatActivity implements LocationSubscribe
     private Sensor mLinearAccelerometer;
     private final double mThreshold = 2;
 
-    private double last_x, last_y, last_z;
-    private double now_x, now_y,now_z;
+    private double last_x, last_y;
+    private double now_x, now_y;
+
+    boolean on = false;
 
     private Sensor mStepCounter;
 
@@ -117,31 +119,38 @@ public class MainActivity extends AppCompatActivity implements LocationSubscribe
         @Override
         public void onSensorChanged(SensorEvent sensorEvent) {
 
+            boolean originalOn = on;
+
             if (sensorEvent.sensor.getType() == Sensor.TYPE_LINEAR_ACCELERATION) {
 
                 //Get the acceleration rates along the y and z axes
                 now_x = sensorEvent.values[0];
                 now_y = sensorEvent.values[1];
-                now_z = sensorEvent.values[2];
 
                 double dx = Math.abs(last_x - now_x);
                 double dy = Math.abs(last_y - now_y);
-                double dz = Math.abs(last_z - now_z);
 
                 if (dx > mThreshold) {
-                    Log.d("gesture", "Disable Step Counter");
-                    //Toast.makeText(getApplicationContext(), "Disable Step Counter", Toast.LENGTH_SHORT).show();
+                    Log.i("gesture", "step counter off");
+                    on = false;
                 } else if (dy > mThreshold) {
-                    Log.d("gesture", "Enable Step Counter");
-                    //Toast.makeText(getApplicationContext(), "Enable Step Counter", Toast.LENGTH_SHORT).show();
+                    Log.i("gesture", "step counter on");
+                    on = true;
+                }
+
+                if (on != originalOn) {
+                    viewModel.setStepCounterOn(on);
+                    Log.i("StepCounter", "setting to " + on);
                 }
                 last_x = now_x;
                 last_y = now_y;
-                last_z = now_z;
             }
 
             if (sensorEvent.sensor.getType() == Sensor.TYPE_STEP_COUNTER) {
                 Log.d("stepCount", String.valueOf(sensorEvent.values[0]));
+                if (on) {
+                    viewModel.setStepCount((int) sensorEvent.values[0]);
+                }
             }
         }
 

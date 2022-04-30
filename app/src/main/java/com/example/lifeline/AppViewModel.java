@@ -12,6 +12,9 @@ import androidx.lifecycle.MutableLiveData;
 public class AppViewModel extends AndroidViewModel {
     private MutableLiveData<User> userData;
     private MutableLiveData<Weather> weatherData;
+    private MutableLiveData<StepCounterState> stepCounterState;
+    private MutableLiveData<StepCount> stepCount;
+
 
     private Repository repository;
 
@@ -20,6 +23,8 @@ public class AppViewModel extends AndroidViewModel {
         repository = Repository.getInstance(application);
         userData = repository.getUserData();
         weatherData = repository.getWeatherData();
+        stepCounterState = repository.getStepCounterState();
+        stepCount = repository.getStepCount();
     }
 
     public void loginUser(String name) {
@@ -39,6 +44,14 @@ public class AppViewModel extends AndroidViewModel {
         repository.setLocation(latitude, longitude);
     }
 
+    public void setStepCounterOn(boolean on) {
+        repository.setStepCounterState(on);
+    }
+
+    public void setStepCount(int count) {
+        repository.setStepCount(count);
+    }
+
     public LiveData<User> getUserData() {
         return userData;
     }
@@ -46,6 +59,10 @@ public class AppViewModel extends AndroidViewModel {
     public LiveData<Weather> getWeatherData() {
         return weatherData;
     }
+
+    public LiveData<StepCounterState> getStepCounterState() { return stepCounterState; }
+
+    public LiveData<StepCount> getStepCount() { return stepCount; }
 
     public double getLatitude() {
         return repository.getLatitude();
