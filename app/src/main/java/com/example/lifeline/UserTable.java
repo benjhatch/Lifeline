@@ -113,5 +113,11 @@ public class UserTable {
     public String getProfilePic() {
         return profilePic;
     }
+
+    @Override
+    public String toString() {
+        return name + ";" + sex + ";" + year +  month + ";" + day + ";" + city + ";" + country + ";" + height + ";" + weight + ";" + profilePic + "\n";
+    }
+
 }
 

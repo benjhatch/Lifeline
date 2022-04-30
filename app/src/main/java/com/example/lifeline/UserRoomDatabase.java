@@ -22,7 +22,9 @@ public abstract class UserRoomDatabase extends RoomDatabase {
     static synchronized UserRoomDatabase getDatabase(final Context context){
         if(mInstance==null) {
             mInstance = Room.databaseBuilder(context.getApplicationContext(),
-                    UserRoomDatabase.class, "users.db").addCallback(sRoomDatabaseCallback).build();
+                    UserRoomDatabase.class, "users.db")
+                    .setJournalMode(JournalMode.TRUNCATE)
+                    .addCallback(sRoomDatabaseCallback).build();
         }
         return mInstance;
     }

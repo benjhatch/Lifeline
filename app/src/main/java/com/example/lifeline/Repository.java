@@ -8,13 +8,23 @@ import android.util.Log;
 
 import androidx.core.os.HandlerCompat;
 import androidx.lifecycle.MutableLiveData;
+import androidx.sqlite.db.SimpleSQLiteQuery;
 
+import com.amplifyframework.AmplifyException;
+import com.amplifyframework.auth.cognito.AWSCognitoAuthPlugin;
+import com.amplifyframework.core.Amplify;
+import com.amplifyframework.storage.s3.AWSS3StoragePlugin;
 import com.androidnetworking.AndroidNetworking;
 import com.androidnetworking.error.ANError;
 import com.androidnetworking.interfaces.JSONObjectRequestListener;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.util.List;
 
 public class Repository {
     private static Repository instance;
@@ -27,19 +37,77 @@ public class Repository {
     private UserDao mUserDao;
     private WeatherDao mWeatherDao;
 
+    private Application application;
+
     private static final String OPEN_WEATHER_MAP_API = "http://api.openweathermap.org/data/2.5/weather?lat=%s&lon=%s&units=imperial";
     private static final String key = "113d3ab578badceb2636da939d5d280f";
 
     private Repository(Application application) {
+        this.application = application;
+
         if (locationSet)
             loadWeather();
-        UserRoomDatabase db = UserRoomDatabase.getDatabase(application);
+
+        setupAmplify(application);
+
+        UserRoomDatabase db = UserRoomDatabase.getDatabase(application.getApplicationContext());
+
+        uploadUserDatabase(application);
+
         mUserDao = db.UserDao();
 
         WeatherRoomDatabase weatherDb = WeatherRoomDatabase.getDatabase(application);
         mWeatherDao = weatherDb.WeatherDao();
 
     }
+
+    private void setupAmplify(Application application) {
+        try {
+            Amplify.addPlugin(new AWSS3StoragePlugin());
+            Amplify.addPlugin(new AWSCognitoAuthPlugin());
+            Amplify.configure(application);
+            Log.i("MyAmplifyApp", "Initialized Amplify");
+        } catch (AmplifyException error) {
+            Log.e("MyAmplifyApp", "Could not initialize Amplify", error);
+        }
+    }
+
+    private void uploadUserDatabase(Application application) {
+
+        UserRoomDatabase.databaseExecutor.execute(() -> {
+            if (mUserDao != null) {
+                mUserDao.checkpoint(new SimpleSQLiteQuery("pragma wal_checkpoint(full)"));
+                File userDB = application.getDatabasePath("users.db");
+                Log.i("MyAmplifyApp", userDB.getAbsolutePath());
+
+                Amplify.Storage.uploadFile(
+                        "Users",
+                        userDB,
+                        result -> Log.i("MyAmplifyApp", "Successfully uploaded: " + result.getKey()),
+                        storageFailure -> Log.e("MyAmplifyApp", "Upload failed", storageFailure)
+                );
+            }
+        });
+    }
+
+    private void uploadWeatherDatabase(Application application) {
+
+        WeatherRoomDatabase.databaseExecutor.execute(() -> {
+            if (mWeatherDao != null) {
+                mWeatherDao.checkpoint(new SimpleSQLiteQuery("pragma wal_checkpoint(full)"));
+                File weatherDB = application.getDatabasePath("weather.db");
+                Log.i("MyAmplifyApp", weatherDB.getAbsolutePath());
+
+                Amplify.Storage.uploadFile(
+                        "Weather",
+                        weatherDB,
+                        result -> Log.i("MyAmplifyApp", "Successfully uploaded: " + result.getKey()),
+                        storageFailure -> Log.e("MyAmplifyApp", "Upload failed", storageFailure)
+                );
+            }
+        });
+    }
+
 
     public void loginUser(String name) {
         UserRoomDatabase.databaseExecutor.execute(() -> {
@@ -100,12 +168,16 @@ public class Repository {
     private void insertUser(UserTable table){
         UserRoomDatabase.databaseExecutor.execute(() -> {
             mUserDao.insert(table);
+            Log.i("MyAmplifyApp", "Uploading Again");
+            uploadUserDatabase(application);
         });
     }
 
     private void insertWeather(WeatherTable table) {
         WeatherRoomDatabase.databaseExecutor.execute(() -> {
             mWeatherDao.insert(table);
+            Log.i("MyAmplifyApp", "Uploading Weather Again");
+            uploadWeatherDatabase(application);
         });
     }
 

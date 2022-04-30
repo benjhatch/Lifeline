@@ -1,29 +1,25 @@
 package com.example.lifeline;
 
-import android.Manifest;
-import android.content.pm.PackageManager;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Looper;
+import android.util.Log;
 
 import com.androidnetworking.AndroidNetworking;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationResult;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnSuccessListener;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
@@ -50,6 +46,15 @@ public class MainActivity extends AppCompatActivity implements LocationSubscribe
                 }
             });
 
+    private SensorManager mSensorManager;
+    private Sensor mLinearAccelerometer;
+    private final double mThreshold = 2;
+
+    private double last_x, last_y, last_z;
+    private double now_x, now_y,now_z;
+
+    private Sensor mStepCounter;
+
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
@@ -68,6 +73,15 @@ public class MainActivity extends AppCompatActivity implements LocationSubscribe
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        //Get sensor manager
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+
+        //Get the default light sensor
+        mLinearAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
+
+        //Get the default step counter
+        mStepCounter = mSensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
+
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
                 R.id.navigation_home, R.id.navigation_dashboard, R.id.navigation_notifications)
                 .build();
@@ -75,7 +89,6 @@ public class MainActivity extends AppCompatActivity implements LocationSubscribe
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.navView, navController);
     }
-
 
     final Observer<User> userObserver = new Observer<User>() {
         @Override
@@ -96,5 +109,68 @@ public class MainActivity extends AppCompatActivity implements LocationSubscribe
     @Override
     public void locationFound(Location location) {
         viewModel.setLocation(location.getLatitude(), location.getLongitude());
+    }
+
+    private SensorEventListener mListener = new SensorEventListener() {
+
+
+        @Override
+        public void onSensorChanged(SensorEvent sensorEvent) {
+
+            if (sensorEvent.sensor.getType() == Sensor.TYPE_LINEAR_ACCELERATION) {
+
+                //Get the acceleration rates along the y and z axes
+                now_x = sensorEvent.values[0];
+                now_y = sensorEvent.values[1];
+                now_z = sensorEvent.values[2];
+
+                double dx = Math.abs(last_x - now_x);
+                double dy = Math.abs(last_y - now_y);
+                double dz = Math.abs(last_z - now_z);
+
+                if (dx > mThreshold) {
+                    Log.d("gesture", "Disable Step Counter");
+                    //Toast.makeText(getApplicationContext(), "Disable Step Counter", Toast.LENGTH_SHORT).show();
+                } else if (dy > mThreshold) {
+                    Log.d("gesture", "Enable Step Counter");
+                    //Toast.makeText(getApplicationContext(), "Enable Step Counter", Toast.LENGTH_SHORT).show();
+                }
+                last_x = now_x;
+                last_y = now_y;
+                last_z = now_z;
+            }
+
+            if (sensorEvent.sensor.getType() == Sensor.TYPE_STEP_COUNTER) {
+                Log.d("stepCount", String.valueOf(sensorEvent.values[0]));
+            }
+        }
+
+
+        @Override
+        public void onAccuracyChanged(Sensor sensor, int i) {
+
+        }
+    };
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(mLinearAccelerometer!=null){
+            mSensorManager.registerListener(mListener,mLinearAccelerometer,SensorManager.SENSOR_DELAY_NORMAL);
+        }
+        if(mStepCounter!=null){
+            mSensorManager.registerListener(mListener,mStepCounter,SensorManager.SENSOR_DELAY_NORMAL);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if(mLinearAccelerometer!=null){
+            mSensorManager.unregisterListener(mListener);
+        }
+        if(mStepCounter!=null){
+            mSensorManager.unregisterListener(mListener);
+        }
     }
 }
